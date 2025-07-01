@@ -1,16 +1,103 @@
 <!DOCTYPE html>
-<html lang="zh-TW">
+<html lang="zh-Hant">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>英文單字小幫手</title>
-  <link rel="stylesheet" href="style.css" />
+  <title>英文單字網站</title>
+  <style>
+    .word-card {
+      padding: 10px;
+      margin: 5px;
+      border: 1px solid #ccc;
+      cursor: pointer;
+      white-space: pre-line;
+    }
+  </style>
 </head>
 <body>
-  <h1>英文單字小幫手</h1>
-  <p>點單字可以查看中文意思</p>
+  <h1>英文單字卡</h1>
+
+  <!-- 登入登出按鈕 -->
+  <button id="login-btn">使用 Google 登入</button>
+  <button id="logout-btn" style="display:none;">登出</button>
+  <p id="user-info">尚未登入</p>
+
+  <!-- 單字容器 -->
   <div id="word-container"></div>
 
-  <script src="script.js"></script>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
+    import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAVB98dUivGWbToUGm1J385YpLrdJcOFA8",
+      authDomain: "english-words-login.firebaseapp.com",
+      projectId: "english-words-login",
+      storageBucket: "english-words-login.firebasestorage.app",
+      messagingSenderId: "380800476156",
+      appId: "1:380800476156:web:247b88b0fe6681f88e8879",
+      measurementId: "G-CVCB2866NZ"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const provider = new GoogleAuthProvider();
+
+    document.getElementById("login-btn").addEventListener("click", () => {
+      signInWithPopup(auth, provider)
+        .then(result => {
+          alert(`登入成功：${result.user.displayName}`);
+        })
+        .catch(error => {
+          alert(`登入失敗：${error.message}`);
+        });
+    });
+
+    document.getElementById("logout-btn").addEventListener("click", () => {
+      signOut(auth)
+        .then(() => {
+          alert("已登出");
+        })
+        .catch(error => {
+          alert(`登出失敗：${error.message}`);
+        });
+    });
+
+    onAuthStateChanged(auth, user => {
+      const userInfo = document.getElementById("user-info");
+      const loginBtn = document.getElementById("login-btn");
+      const logoutBtn = document.getElementById("logout-btn");
+
+      if (user) {
+        userInfo.textContent = `👋 歡迎，${user.displayName}（${user.email}）`;
+        loginBtn.style.display = "none";
+        logoutBtn.style.display = "inline";
+      } else {
+        userInfo.textContent = "尚未登入";
+        loginBtn.style.display = "inline";
+        logoutBtn.style.display = "none";
+      }
+    });
+
+    // 單字卡功能
+    const words = [
+      { en: "apple", zh: "蘋果" },
+      { en: "banana", zh: "香蕉" },
+      { en: "cherry", zh: "櫻桃" },
+      { en: "dog", zh: "狗" },
+      { en: "elephant", zh: "大象" }
+    ];
+
+    const container = document.getElementById("word-container");
+
+    words.forEach(word => {
+      const card = document.createElement("div");
+      card.className = "word-card";
+      card.innerText = word.en;
+      card.onclick = () => {
+        card.innerText = `${word.en}\n(${word.zh})`;
+      };
+      container.appendChild(card);
+    });
+  </script>
 </body>
 </html>
